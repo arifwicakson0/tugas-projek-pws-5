@@ -1,16 +1,87 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="id">
 <head>
-  <title>Tambah Menu</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Admin - Tambah Menu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="container mt-4">
-  <h2>Tambah Menu</h2>
-  <form method="POST" action="/admin/menu">
-    <input name="nama_menu" class="form-control mb-2" placeholder="Nama Menu">
-    <input name="harga" type="number" class="form-control mb-2" placeholder="Harga">
-    <button class="btn btn-primary">Simpan</button>
-  </form>
-  <a href="/admin" class="btn btn-secondary mt-2">Kembali</a>
+<body class="bg-light">
+    <nav class="navbar navbar-light bg-white shadow-sm mb-4">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">👨‍🍳 Admin Panel</span>
+            <div>
+                <span id="adminName" class="me-3 fw-bold"></span>
+                <a href="/admin-history.html" class="btn btn-warning me-2">📜 Lihat Pesanan</a>
+                <button onclick="logout()" class="btn btn-danger">Keluar</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card shadow" style="max-width: 600px; margin: auto;">
+            <div class="card-header bg-primary text-white"><h4>Tambah Menu Baru</h4></div>
+            <div class="card-body">
+                <form id="formMenu">
+                    <div class="mb-3">
+                        <label>Nama Menu</label>
+                        <input type="text" id="nama" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Harga (Rp)</label>
+                        <input type="number" id="harga" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Deskripsi</label>
+                        <textarea id="deskripsi" class="form-control"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Simpan Menu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- AMBIL KUNCI LOGIN ---
+        const ADMIN_KEY = localStorage.getItem('my_api_key');
+        const USERNAME = localStorage.getItem('my_username');
+
+        if (!ADMIN_KEY) {
+            alert('Harap login dahulu!');
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('adminName').innerText = USERNAME;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('formMenu').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                nama: document.getElementById('nama').value,
+                harga: document.getElementById('harga').value,
+                deskripsi: document.getElementById('deskripsi').value
+            };
+
+            try {
+                const res = await fetch('http://localhost:3000/api/menus', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': ADMIN_KEY },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await res.json();
+                
+                if (res.ok) {
+                    alert('✅ Menu berhasil ditambahkan!');
+                    e.target.reset();
+                } else {
+                    alert('❌ Gagal: ' + result.message);
+                }
+            } catch (err) { alert('Error koneksi backend'); }
+        });
+    </script>
 </body>
 </html>

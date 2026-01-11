@@ -1,53 +1,126 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Menu Restoran</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Menu Pelanggan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-
-<nav class="navbar navbar-dark bg-dark">
-  <div class="container-fluid">
-    <span class="navbar-brand mb-0 h1">🍽️ Resto App</span>
-    <a href="/admin" class="btn btn-outline-light">Admin</a>
-  </div>
-</nav>
-
-<div class="container mt-4">
-  <h2 class="mb-4">Menu Makanan</h2>
-
-  <div class="row" id="menu-list">
-    <!-- Menu akan diisi lewat JavaScript -->
-  </div>
-</div>
-
-<script>
-fetch('/api/menu-client')
-  .then(res => res.json())
-  .then(data => {
-    const menuList = document.getElementById('menu-list');
-    menuList.innerHTML = '';
-
-    data.forEach(menu => {
-      menuList.innerHTML += `
-        <div class="col-md-4">
-          <div class="card mb-3 shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title">${menu.nama_menu}</h5>
-              <p class="card-text">Rp ${menu.harga}</p>
-              <form method="POST" action="/order">
-                <input type="hidden" name="nama_pelanggan" value="Pelanggan">
-                <input type="hidden" name="total" value="${menu.harga}">
-                <button class="btn btn-primary w-100">Pesan</button>
-              </form>
+<body class="bg-light">
+    
+    <nav class="navbar navbar-dark bg-dark mb-4 shadow sticky-top">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">🍽️ Restoran Kita</span>
+            <div class="d-flex align-items-center gap-3">
+                <span id="userDisplay" class="text-white fw-bold"></span>
+                <button onclick="logout()" class="btn btn-outline-danger btn-sm">Keluar</button>
             </div>
-          </div>
         </div>
-      `;
-    });
-  });
-</script>
+    </nav>
 
+    <div class="container">
+        <h3 class="text-center mb-4">Silakan Pesan Makanan Anda</h3>
+        <div id="listMenu" class="row">
+            <div class="col-12 text-center">Memuat menu...</div>
+        </div>
+    </div>
+
+    <script>
+        // 1. AMBIL API KEY & USERNAME DARI LOGIN
+        const USER_KEY = localStorage.getItem('my_api_key');
+        const USERNAME = localStorage.getItem('my_username');
+        const API_URL = 'http://localhost:3000/api';
+
+        // Cek Login
+        if (!USER_KEY) {
+            alert('Anda belum login! Silakan login terlebih dahulu.');
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('userDisplay').innerText = "Halo, " + USERNAME;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        async function loadMenus() {
+            try {
+                const res = await fetch(`${API_URL}/menus`, {
+                    headers: { 'x-api-key': USER_KEY } // Kirim Key dari Storage
+                });
+                const menus = await res.json();
+                const container = document.getElementById('listMenu');
+                container.innerHTML = '';
+
+                if (menus.length === 0) {
+                    container.innerHTML = '<div class="alert alert-warning text-center w-100">Belum ada menu tersedia.</div>';
+                    return;
+                }
+
+                menus.forEach(menu => {
+                    const namaAman = menu.nama.replace(/'/g, "\\'"); 
+                    container.innerHTML += `
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 shadow-sm border-0">
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold">${menu.nama}</h5>
+                                    <h6 class="card-subtitle mb-2 text-success">Rp ${parseInt(menu.harga).toLocaleString('id-ID')}</h6>
+                                    <p class="card-text small text-muted">${menu.deskripsi || ''}</p>
+                                </div>
+                                <div class="card-footer bg-white border-0">
+                                    <button onclick="pesan('${namaAman}', ${menu.harga})" class="btn btn-primary w-100">Pesan Sekarang</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function pesan(nama, harga) {
+            if(!confirm(`Pesan ${nama}?`)) return;
+
+            try {
+                const res = await fetch(`${API_URL}/transactions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': USER_KEY // Kirim Key
+                    },
+                    body: JSON.stringify({ 
+                        menu_name: nama, 
+                        price: harga,
+                        customer_name: USERNAME 
+                    })
+                });
+
+                const hasil = await res.json();
+                if (res.ok) {
+                    // --- TAMPILKAN STRUK ---
+                    const waktu = new Date().toLocaleString();
+                    const struk = `
+================================
+       STRUK PEMBELIAN
+================================
+Nama Pelanggan : ${USERNAME}
+Menu           : ${nama}
+Harga          : Rp ${harga.toLocaleString()}
+Waktu          : ${waktu}
+--------------------------------
+API KEY ANDA   : ${USER_KEY}
+================================
+       TERIMA KASIH!
+`;
+                    alert(struk);
+                } else {
+                    alert('❌ Gagal: ' + hasil.message);
+                }
+            } catch (err) { alert('Error koneksi.'); }
+        }
+
+        loadMenus();
+    </script>
 </body>
 </html>

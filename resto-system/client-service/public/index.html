@@ -1,59 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Resto App</title>
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Restoran</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="container mt-4">
+<body class="bg-light vh-100 d-flex align-items-center justify-content-center">
 
-<h2>Menu Makanan</h2>
-<table class="table table-bordered">
-  <thead>
-    <tr>
-      <th>Nama</th>
-      <th>Harga</th>
-      <th>Order</th>
-    </tr>
-  </thead>
-  <tbody id="menu"></tbody>
-</table>
+    <div class="container text-center">
+        <h1 class="mb-5 fw-bold display-4">Selamat Datang di Restoran</h1>
+        
+        <div class="d-flex gap-4 justify-content-center flex-wrap">
+            <a href="/login.html" class="btn btn-primary btn-lg p-4 shadow" style="min-width: 250px;">
+                <h3>🔐 Login (Admin/User)</h3>
+                <small>Masuk ke akun Anda</small>
+            </a>
+            
+            <a href="/register.html" class="btn btn-success btn-lg p-4 shadow" style="min-width: 250px;">
+                <h3>📝 Daftar Akun Baru</h3>
+                <small>Dapatkan API Key Anda sendiri</small>
+            </a>
+        </div>
+    </div>
 
-<script>
-fetch("/api/menu")
-  .then(res => res.json())
-  .then(data => {
-    let html = "";
-    data.forEach(m => {
-      html += `
-        <tr>
-          <td>${m.name}</td>
-          <td>Rp ${m.price}</td>
-          <td>
-            <button class="btn btn-success"
-              onclick="order(${m.id}, ${m.price})">
-              Beli
-            </button>
-          </td>
-        </tr>`;
-    });
-    document.getElementById("menu").innerHTML = html;
-  });
-
-function order(id, price) {
-  fetch("/api/order", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      user_id: 1,
-      total: price,
-      items: [{ menu_id: id, qty: 1, price: price }]
-    })
-  })
-  .then(res => res.json())
-  .then(() => alert("Order berhasil"));
-}
-</script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
