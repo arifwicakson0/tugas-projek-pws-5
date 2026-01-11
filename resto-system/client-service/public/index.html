@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Resto App</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-4">
+
+<h2>Menu Makanan</h2>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Nama</th>
+      <th>Harga</th>
+      <th>Order</th>
+    </tr>
+  </thead>
+  <tbody id="menu"></tbody>
+</table>
+
+<script>
+fetch("/api/menu")
+  .then(res => res.json())
+  .then(data => {
+    let html = "";
+    data.forEach(m => {
+      html += `
+        <tr>
+          <td>${m.name}</td>
+          <td>Rp ${m.price}</td>
+          <td>
+            <button class="btn btn-success"
+              onclick="order(${m.id}, ${m.price})">
+              Beli
+            </button>
+          </td>
+        </tr>`;
+    });
+    document.getElementById("menu").innerHTML = html;
+  });
+
+function order(id, price) {
+  fetch("/api/order", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      user_id: 1,
+      total: price,
+      items: [{ menu_id: id, qty: 1, price: price }]
+    })
+  })
+  .then(res => res.json())
+  .then(() => alert("Order berhasil"));
+}
+</script>
+
+</body>
+</html>
